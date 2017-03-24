@@ -1,0 +1,20 @@
+Package: coRal
+Type: Package
+Title: Dynamic bioenergetic modeling of coral-Symbiodinium symbioses
+Version: 0.0.0.9000
+Authors@R: person("Ross", "Cunning", email = "ross.cunning@gmail.com",
+    role = c("aut", "cre"))
+Description: This package contains functions to run simulations and visualize
+    results of a dynamic bioenergetic model of coral-Symbiodinium symbioses.
+    Light, nutrients, and feeding can be manipulated to produce customized,
+    integrated simulations of coral growth and dynamics of symbiosis (e.g.,
+    the symbiont to host biomass ratio), including coral bleaching and recovery.
+URL: http://github.com/jrcunning/coRal
+BugReports: http://github.com/jrcunning/coRal/issues
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Imports:
+    dplyr,
+    scales
+RoxygenNote: 6.0.1
