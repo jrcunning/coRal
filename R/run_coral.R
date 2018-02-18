@@ -127,7 +127,7 @@ run_coral <- function(time, env, pars) {
     H$jN[t] <- (pars$jNm * env$N[t] / (env$N[t] + pars$KN))  # N uptake from the environment
     H$rNH[t] <- H$jHT[t-1] * pars$nNH * pars$sigmaNH  # Recycled N from host biomass turnover
     # Carbon input flux
-    rhoC.t <- sum(sapply(S, function(S) with(S[t-1, ], rhoC*S)))  # Total amount of carbon shared by all symbionts
+    rhoC.t <- sum(sapply(S, function(S) with(S, rhoC[t]*S[t-1])))  # Total amount of carbon shared by all symbionts
     #S[[i]]$rhoC[t] = Carbon shared by the symbiont (defined above)
     # Production flux (host biomass formation)
     H$jHG[t] <- synth(pars$yC*(rhoC.t/H$H[t-1] + H$jX[t]), (H$jN[t] + pars$nNX*H$jX[t] + H$rNH[t]) / pars$nNH, pars$jHGm)
