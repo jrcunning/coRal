@@ -94,8 +94,8 @@ plot_run <- function(run) {
 }
 
 #' @describeIn plot_run Plot external irradiance
-plot_L <- function(run) with(run, {
-  plot(time, env$L, type="l", col="yellow", ylim=c(0,60), lwd=2, xlab="", ylab="mol/m2/d", main="Irradiance")
+plot_L <- function(run, xlim=range(run$time), ylim=c(0,60)) with(run, {
+  plot(time, env$L, type="l", col="gold", xlim=xlim, ylim=ylim, lwd=2, xlab="", ylab="mol/m2/d")
 })
 
 #' @describeIn plot_run Plot external DIN concentration
@@ -115,13 +115,21 @@ plot_gr <- function(run) with(run, {
   legend("topright", legend=c("Host", "Sym"), lwd=c(3,1), col="black", bty="n", y.intersp=1)
 })
 
+#' @describeIn plot_run Plot specific growth rate of host
+plot_Hgr <- function(run, xlim=range(run$time), ylim=c(min(0, min(run$H$dH.Hdt[-(1:10)])), max(run$H$dH.Hdt[-(1:10)]))) with(run, {
+  Hgrf <- H$dH.Hdt[length(H$dH.Hdt)]
+  plot(time, H$dH.Hdt, type="l", xlim=xlim, ylim=ylim,
+       xlab="", ylab="", lwd=2, cex=1, cex.lab=1)
+  if(any(H$dH.Hdt[-(1:10)]<0)) abline(h=0, lwd=0.5, lty=3)
+  #text(time[0.95*length(time)], Hgrf, labels=as.character(round(Hgrf, 3)), pos=3, xpd=T, cex=0.75)
+})
+
 #' @describeIn plot_run Plot the symbiont to host biomass ratio
-plot_sh <- function(run) with(run, {
+plot_sh <- function(run, xlim=range(run$time), ylim=c(0, max(run$S$S/run$H$H, na.rm=T))) with(run, {
   totSH <- S$S / H$H
   totSHf <- totSH[length(totSH)]
-  plot(time, totSH, type="l", col="black", ylim=c(0, max(totSH, na.rm=T)), ylab="C-molS/C-molH", xlab="", lwd=2,
-       main="Symbiont:host biomass")
-  text(time[0.95*length(time)], totSHf, labels=as.character(round(totSHf, 3)), pos=3, xpd=T, cex=0.75)
+  plot(time, totSH, type="l", col="black", xlim=xlim, ylim=ylim, ylab="C-molS/C-molH", xlab="", lwd=2)
+  #text(time[0.95*length(time)], totSHf, labels=as.character(round(totSHf, 3)), pos=3, xpd=T, cex=0.75)
 })
 
 #' @describeIn plot_run Plot light quenching (carbon fixation, NPQ, and excess (=ROS-producing))
