@@ -78,9 +78,9 @@ run_coral <- function(time, env, pars) {
   # ==========================
   dt <- time[2] - time[1]
   for (t in 2:length(time)) {
-    S.t <- rowSums(sapply(S, "[[", 2))[t-1]  # Get total symbiont abundance from prev time step
 
-    # For each symbiont...
+    # Symbiont fluxes
+    S.t <- sum(sapply(S, "[[", c(2, t-1)))  # Get total symbiont abundance from prev time step
     for (i in 1:nsym) {
       S[[i]] <- within(S[[i]], {
         # Photosynthesis
@@ -113,12 +113,15 @@ run_coral <- function(time, env, pars) {
         jNw[t] <- max(H$rhoN[t-1]*H$H[t-1]/S.t + rNS[t] - pars$nNS[i] * jSG[t], 0)
         # Symbiont biomass loss (turnover)
         jST[t] <- pars$jST0[i] * (1 + pars$b[i] * (cROS[t] - 1))
+        # State equations
+        dS.Sdt[t] <- jSG[t] - jST[t]  # Specific growth rates (Cmol/Cmol/d)
+        S[t] <- S[t-1] + dS.Sdt[t] * S[t-1] * dt  # Biomass (Cmol)
       })
     }
     # Total amount of carbon shared by all symbionts
     rhoC.t <- sum(sapply(S, function(S) with(S, rhoC[t]*S[t-1])))
 
-    # Host biomass
+    # Host fluxes
     # ============
     H <- within(H, {
       # Food input flux (prey=both carbon and nitrogen)
@@ -136,16 +139,10 @@ run_coral <- function(time, env, pars) {
       #jHT[t] <- pars$jHT0
       rCH[t] <- pars$sigmaCH * (pars$jHT0 + (1-pars$yC)*jHG[t]/pars$yC)  # metabolic CO2 recycled from host biomass turnover
       jCO2[t] <- pars$kCO2 * jeC[t]  # carbon not used in host biomass is used to activate CCM's that deliver CO2 to photosynthesis
+      # State equations
+      dH.Hdt[t] <- jHG[t] - pars$jHT0  # Specific growth rates (Cmol/Cmol/d)
+      H[t] <- H[t-1] + dH.Hdt[t] * H[t-1] * dt  # Biomass (Cmol)
     })
-
-    # State equations
-    # ===============
-    # Specific growth rates (Cmol/Cmol/d)
-    for (i in 1:nsym) S[[i]]$dS.Sdt[t] <- S[[i]]$jSG[t] - S[[i]]$jST[t]
-    H$dH.Hdt[t] <- H$jHG[t] - pars$jHT0
-    # Biomass (Cmol)
-    for (i in 1:nsym) S[[i]]$S[t] <- S[[i]]$S[t-1] + S[[i]]$dS.Sdt[t] * S[[i]]$S[t-1] * dt
-    H$H[t] <- H$H[t-1] + H$dH.Hdt[t] * H$H[t-1] * dt
   }
 
   # Return results
