@@ -45,9 +45,9 @@ run_coral <- function(time, env, pars) {
     jeC=10,
     jCO2=pars$kCO2 * jeC,
     jHG=0.25,
-    jHT=pars$jHT0,
-    rNH=jHT * pars$nNH * pars$sigmaNH,
-    rCH=jHT * pars$sigmaCH,
+    #jHT=pars$jHT0,
+    rNH=pars$jHT0 * pars$nNH * pars$sigmaNH,
+    rCH=pars$jHT0 * pars$sigmaCH,
     dH.Hdt=pars$jHGm
   )
   H[2:nrow(H), 2:ncol(H)] <- NA
@@ -79,7 +79,6 @@ run_coral <- function(time, env, pars) {
   dt <- time[2] - time[1]
   for (t in 2:length(time)) {
     S.t <- rowSums(sapply(S, "[[", 2))[t-1]  # Get total symbiont abundance from prev time step
-    #S.p <- sapply(S, "[[", 2)[t-1, ] / S.t  # Get proportion of each symbiont
 
     # For each symbiont...
     for (i in 1:nsym) {
@@ -104,7 +103,6 @@ run_coral <- function(time, env, pars) {
         # ================
         # Nitrogen input flux
         rNS[t] <- pars$jST0[i] * pars$nNS[i] * pars$sigmaNS[i]  # Recylced N from symbiont biomass turnover.
-        #H$rhoN[t-1] <- H$rhoN[t-1]  # Nitrogen shared from the host (defined below, so previous time step used)
         # Carbon input flux
         jCP[t] <- jCP[t]  # Production of fixed carbon from photosynthesis SU
         # Production flux (symbiont biomass formation)
@@ -127,7 +125,7 @@ run_coral <- function(time, env, pars) {
       jX[t] <- (pars$jXm * env$X[t] / (env$X[t] + pars$KX))  # Prey uptake from the environment
       # Nitrogen input flux
       jN[t] <- (pars$jNm * env$N[t] / (env$N[t] + pars$KN))  # N uptake from the environment
-      rNH[t] <- jHT[t-1] * pars$nNH * pars$sigmaNH  # Recycled N from host biomass turnover
+      rNH[t] <- pars$jHT0 * pars$nNH * pars$sigmaNH  # Recycled N from host biomass turnover
       # Production flux (host biomass formation)
       jHG[t] <- synth(pars$yC*(rhoC.t/H[t-1] + jX[t]), (jN[t] + pars$nNX*jX[t] + rNH[t]) / pars$nNH, pars$jHGm)
       # Rejection flux: nitrogen (surplus nitrogen shared with the symbiont)
@@ -135,8 +133,8 @@ run_coral <- function(time, env, pars) {
       # Rejection flux: carbon -- given back to symbiont as CO2 input to photosynthesis
       jeC[t] <- max(jX[t] + rhoC.t/H[t-1] - jHG[t]/pars$yC, 0)
       # Host biomass loss
-      jHT[t] <- pars$jHT0
-      rCH[t] <- pars$sigmaCH * (jHT[t] + (1-pars$yC)*jHG[t]/pars$yC)  # metabolic CO2 recycled from host biomass turnover
+      #jHT[t] <- pars$jHT0
+      rCH[t] <- pars$sigmaCH * (pars$jHT0 + (1-pars$yC)*jHG[t]/pars$yC)  # metabolic CO2 recycled from host biomass turnover
       jCO2[t] <- pars$kCO2 * jeC[t]  # carbon not used in host biomass is used to activate CCM's that deliver CO2 to photosynthesis
     })
 
@@ -144,7 +142,7 @@ run_coral <- function(time, env, pars) {
     # ===============
     # Specific growth rates (Cmol/Cmol/d)
     for (i in 1:nsym) S[[i]]$dS.Sdt[t] <- S[[i]]$jSG[t] - S[[i]]$jST[t]
-    H$dH.Hdt[t] <- H$jHG[t] - H$jHT[t]
+    H$dH.Hdt[t] <- H$jHG[t] - pars$jHT0
     # Biomass (Cmol)
     for (i in 1:nsym) S[[i]]$S[t] <- S[[i]]$S[t-1] + S[[i]]$dS.Sdt[t] * S[[i]]$S[t-1] * dt
     H$H[t] <- H$H[t-1] + H$dH.Hdt[t] * H$H[t-1] * dt
