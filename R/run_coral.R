@@ -38,40 +38,41 @@ run_coral <- function(time, env, pars) {
   # Host
   H <- dplyr::data_frame(
     time=time,
-    H=pars$initH,
-    jX=(pars$jXm * env$X[1] / (env$X[1] + pars$KX)),
-    jN=(pars$jNm * env$N[1] / (env$N[1] + pars$KN)),
+    jX=(pars$jXm * env$X / (env$X + pars$KX)),
+    jN=(pars$jNm * env$N / (env$N + pars$KN)),
+    rNH=pars$jHT0 * pars$nNH * pars$sigmaNH,
     rhoN=jN,
     jeC=10,
     jCO2=pars$kCO2 * jeC,
     jHG=0.25,
     #jHT=pars$jHT0,
-    rNH=pars$jHT0 * pars$nNH * pars$sigmaNH,
     rCH=pars$jHT0 * pars$sigmaCH,
-    dH.Hdt=pars$jHGm
+    dH.Hdt=pars$jHGm,
+    H=pars$initH
   )
-  H[2:nrow(H), 2:ncol(H)] <- NA
+  H[2:nrow(H), 5:ncol(H)] <- NA
 
   # Symbiont
   S <- list()
   for (i in 1:nsym) {
     S[[i]] <- dplyr::data_frame(
       time=time,
-      S=pars$initS[i],
+      rNS=pars$jST0[i] * pars$nNS[i] * pars$sigmaNS[i],
       jL=env$L[1] * pars$astar[i],
-      jCP=max(0, synth(jL * pars$yCL[i], H$jCO2[1]*H$H/S, pars$jCPm[i]), na.rm=T),
+      jCP=max(0, synth(jL * pars$yCL[i], H$jCO2[1]*H$H/pars$initS[i], pars$jCPm[i]), na.rm=T),
       jeL=max(jL - jCP/pars$yCL[i], 0),
       jNPQ=pars$kNPQ[i],
-      jCO2w=H$jCO2*H$H/S - jCP,
+      #jCO2w=H$jCO2*H$H/S - jCP,
       jSG=pars$jSGm[i]/10,
       rhoC=jCP,
-      jNw=0,
+      #jNw=0,
       jST=pars$jST0[i],
-      rNS=jST * pars$nNS[i] * pars$sigmaNS[i],
-      rCS=jST * pars$sigmaCS[i],
+      rCS=pars$jST0[i] * pars$sigmaCS[i],
       cROS=1,
-      dS.Sdt=pars$jSGm[i])
-    S[[i]][2:nrow(S[[i]]), 2:ncol(S[[i]])] <- NA
+      dS.Sdt=pars$jSGm[i],
+      S=pars$initS[i]
+    )
+    S[[i]][2:nrow(S[[i]]), 3:ncol(S[[i]])] <- NA
   }
 
   # Run simulation by updating
@@ -80,7 +81,7 @@ run_coral <- function(time, env, pars) {
   for (t in 2:length(time)) {
 
     # Symbiont fluxes
-    S.t <- sum(sapply(S, "[[", c(2, t-1)))  # Get total symbiont abundance from prev time step
+    S.t <- sum(sapply(S, "[[", c(13, t-1)))  # Get total symbiont abundance from prev time step (13th column!!!)
     for (i in 1:nsym) {
       S[[i]] <- within(S[[i]], {
         # Photosynthesis
@@ -92,7 +93,7 @@ run_coral <- function(time, env, pars) {
         # Production flux (photosynthetic carbon fixation)
         jCP[t] <- synth(jL[t] * pars$yCL[i], (H$jCO2[t-1] + H$rCH[t-1])*H$H[t-1]/S.t + rCS[t], pars$jCPm[i]) / cROS[t-1]
         # Rejection flux: CO2 (wasted to the environment)
-        jCO2w[t] <- max((H$jCO2[t-1] + H$rCH[t-1])*H$H[t-1]/S.t + rCS[t] - jCP[t], 0)
+        #jCO2w[t] <- max((H$jCO2[t-1] + H$rCH[t-1])*H$H[t-1]/S.t + rCS[t] - jCP[t], 0)
         # Rejection flux: excess light energy not quenched by carbon fixation
         jeL[t] <- max(jL[t] - jCP[t]/pars$yCL[i], 0)
         # Amount of excess light energy quenched by NPQ
@@ -102,15 +103,13 @@ run_coral <- function(time, env, pars) {
         # Symbiont biomass
         # ================
         # Nitrogen input flux
-        rNS[t] <- pars$jST0[i] * pars$nNS[i] * pars$sigmaNS[i]  # Recylced N from symbiont biomass turnover.
-        # Carbon input flux
-        jCP[t] <- jCP[t]  # Production of fixed carbon from photosynthesis SU
+        #rNS[t] <- pars$jST0[i] * pars$nNS[i] * pars$sigmaNS[i]  # Recylced N from symbiont biomass turnover.
         # Production flux (symbiont biomass formation)
         jSG[t] <- synth(pars$yC*jCP[t], (H$rhoN[t-1]*H$H[t-1]/S.t + rNS[t])/pars$nNS[i], pars$jSGm[i])
         # Rejection flux: carbon (surplus carbon shared with the host)
         rhoC[t] <- max(jCP[t] - jSG[t]/pars$yC, 0)
         # Rejection flux: nitrogen (surplus nitrogen wasted to the environment)
-        jNw[t] <- max(H$rhoN[t-1]*H$H[t-1]/S.t + rNS[t] - pars$nNS[i] * jSG[t], 0)
+        #jNw[t] <- max(H$rhoN[t-1]*H$H[t-1]/S.t + rNS[t] - pars$nNS[i] * jSG[t], 0)
         # Symbiont biomass loss (turnover)
         jST[t] <- pars$jST0[i] * (1 + pars$b[i] * (cROS[t] - 1))
         # State equations
@@ -125,10 +124,10 @@ run_coral <- function(time, env, pars) {
     # ============
     H <- within(H, {
       # Food input flux (prey=both carbon and nitrogen)
-      jX[t] <- (pars$jXm * env$X[t] / (env$X[t] + pars$KX))  # Prey uptake from the environment
+      #jX[t] <- (pars$jXm * env$X[t] / (env$X[t] + pars$KX))  # Prey uptake from the environment
       # Nitrogen input flux
-      jN[t] <- (pars$jNm * env$N[t] / (env$N[t] + pars$KN))  # N uptake from the environment
-      rNH[t] <- pars$jHT0 * pars$nNH * pars$sigmaNH  # Recycled N from host biomass turnover
+      #jN[t] <- (pars$jNm * env$N[t] / (env$N[t] + pars$KN))  # N uptake from the environment
+      #rNH[t] <- pars$jHT0 * pars$nNH * pars$sigmaNH  # Recycled N from host biomass turnover
       # Production flux (host biomass formation)
       jHG[t] <- synth(pars$yC*(rhoC.t/H[t-1] + jX[t]), (jN[t] + pars$nNX*jX[t] + rNH[t]) / pars$nNH, pars$jHGm)
       # Rejection flux: nitrogen (surplus nitrogen shared with the symbiont)
