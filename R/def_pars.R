@@ -1,11 +1,13 @@
 #' Get default model parameters.
 #'
-#' \code{def_pars} takes no arguments and returns the default values for all
+#' \code{def_pars} takes returns the default values for all host and symbiont
 #' parameters used in the model.
 #'
-#' @return A list of 26 length-one numerics containing the default values for
+#' @param nsym The number of distinct symbionts to include in the model.
+#'
+#' @return A list of the default values for
 #'   all parameters used in the model. Each list element is named as the
-#'   parameter name.
+#'   parameter name. Host parameters have length one, and symbiont parameters have length \code{nsym}
 #' @examples
 #' def_pars()
 #' pars <- def_pars()
