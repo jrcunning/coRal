@@ -57,7 +57,7 @@ init_env <- function(time, L, N, X) {
   } else if (X[3]==1) {
     seq(X[2], X[1], along=time)
   } else {
-    0.5 * (X[2] - X[1]) * sin(0.0172*time) + X[1]*10^-6 + 0.5 * (X[2] - X[1])
+    0.5 * (X[2] - X[1]) * sin(0.0172*time) + X[1] + 0.5 * (X[2] - X[1])
   }
   # Set environment specifications
   env <- list(L=L, N=N, X=X)
