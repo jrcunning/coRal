@@ -5,6 +5,7 @@
 \alias{plot_L}
 \alias{plot_DIN}
 \alias{plot_gr}
+\alias{plot_Hgr}
 \alias{plot_sh}
 \alias{plot_Lq}
 \alias{plot_photo}
@@ -21,13 +22,23 @@
 \usage{
 plot_run(run)
 
-plot_L(run)
+plot_L(run, xlim = range(run$time), ylim = c(0, 60))
 
 plot_DIN(run)
 
 plot_gr(run)
 
-plot_sh(run)
+plot_Hgr(
+  run,
+  xlim = range(run$time),
+  ylim = c(min(0, min(run$H$dH.Hdt[-(1:10)])), max(run$H$dH.Hdt[-(1:10)]))
+)
+
+plot_sh(
+  run,
+  xlim = range(run$time),
+  ylim = c(0, max(run$S$S/run$H$H, na.rm = T))
+)
 
 plot_Lq(run)
 
@@ -67,6 +78,8 @@ model fluxes independently.
 \item \code{plot_DIN}: Plot external DIN concentration
 
 \item \code{plot_gr}: Plot specific growth rates of host and symbiont
+
+\item \code{plot_Hgr}: Plot specific growth rate of host
 
 \item \code{plot_sh}: Plot the symbiont to host biomass ratio
 

@@ -4,15 +4,18 @@
 \alias{def_pars}
 \title{Get default model parameters.}
 \usage{
-def_pars()
+def_pars(nsym = 1)
+}
+\arguments{
+\item{nsym}{The number of distinct symbionts to include in the model.}
 }
 \value{
-A list of 26 length-one numerics containing the default values for
+A list of the default values for
   all parameters used in the model. Each list element is named as the
-  parameter name.
+  parameter name. Host parameters have length one, and symbiont parameters have length \code{nsym}
 }
 \description{
-\code{def_pars} takes no arguments and returns the default values for all
+\code{def_pars} takes returns the default values for all host and symbiont
 parameters used in the model.
 }
 \examples{

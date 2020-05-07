@@ -17,4 +17,4 @@ LazyData: true
 Imports:
     dplyr,
     scales
-RoxygenNote: 6.0.1
+RoxygenNote: 7.1.0

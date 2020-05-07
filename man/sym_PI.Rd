@@ -4,11 +4,13 @@
 \alias{sym_PI}
 \title{Simulate and plot a \emph{Symbiodinium} PI curve.}
 \usage{
-sym_PI(pars)
+sym_PI(pars, draw = TRUE)
 }
 \arguments{
 \item{pars}{A list of model parameters to use in the simulation, i.e. the
 object returned by \code{def_pars}.}
+
+\item{draw}{Whether to plot PI curve (TRUE or FALSE)}
 }
 \value{
 A data frame with simulation results at each time step.
