@@ -123,7 +123,7 @@ run_coral_ss <- function(env, pars=def_pars(), dt=0.1) {
     # Production flux (host biomass formation)
     H$jHG[t] <- synth(pars$yC*(S$rhoC[t]*S$S[t-1]/H$H[t-1] + H$jX[t]), (H$jN[t] + pars$nNX*H$jX[t] + H$rNH[t]) / pars$nNH, pars$jHGm)
     # Rejection flux: nitrogen (surplus nitrogen shared with the symbiont)
-    H$rhoN[t] <- max(H$jN[t] + pars$nNX * H$jX[t] + H$rNH[t] - pars$nNH * H$jHG[t]/pars$yC, 0)
+    H$rhoN[t] <- max(H$jN[t] + pars$nNX * H$jX[t] + H$rNH[t] - pars$nNH * H$jHG[t], 0)
     # Rejection flux: carbon -- given back to symbiont as CO2 input to photosynthesis
     H$jeC[t] <- max(H$jX[t] + S$rhoC[t]*S$S[t-1]/H$H[t-1] - H$jHG[t]/pars$yC, 0)
     # Host biomass loss
